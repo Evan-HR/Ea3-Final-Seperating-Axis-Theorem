@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Numerics;
-	
+using System.Diagnostics.Contracts;
 // 
 	
 public class Polygon
@@ -14,6 +14,7 @@ public class Polygon
 	
 	public Polygon(List<Point> pointsList) 
 	{
+		Contract.Requires(pointsList.Count != 0);
 		pnts = pointsList.ToArray();
 		double avgx = 0; 
 		double avgy = 0;
@@ -24,6 +25,7 @@ public class Polygon
 		}
 		c = new Point(avgx / pnts.Length, avgy / pnts.Length);
 		n = pnts.Length;
+		Contract.Ensures(pnts.Length == pointsList.Count);
 	}
 
 	public Point get_c()
@@ -38,15 +40,8 @@ public class Polygon
 
 	public Point get_point(int index)
 	{
-		try 
-		{ 
-			return pnts[index]; 
-		}
-		catch(System.IndexOutOfRangeException ex)
-    	{
-        System.ArgumentException argEx = new System.ArgumentException("Index is out of range", "index", ex);
-        throw argEx;
-		}
+		Contract.Requires(0 <= index && index < n);
+		return pnts[index]; 
 	}
 	
 	public void translate(Vector delta_d)
@@ -95,13 +90,13 @@ public class Polygon
 		//take all normal vectors from both polygons to project the polygons onto, 
 		// then compare the min/max pairs of both polygons
 
-		//I need that funky wrapping edge-loop where I make edges out of pairs of points.
 		// since all shapes are closed, edge# = point#
 		int N = n + other.get_n();
 		Vector[] edges = new Vector[N];
 		Vector e;
 		for (int i = 0; i < N; i++)
 		{
+		Contract.Invariant(0 <= N-i);
 		// use if statement while iterating through the edge list to assure no edges are used that 
 		// are not in either shape. 
 			if (i < n) // in first shape
@@ -119,8 +114,9 @@ public class Polygon
 		Tuple<Vector, Vector> projB;
 		for (int i = 0; i < N; i++)
 		{
+			Contract.Invariant(0 <= N-i);
+			
 			projA = this.project(edges[i]); 
-
 			projB = other.project(edges[i]);
 			// if max of A is less than min of B, or min of B is greater than max of A for any vector --> no collision.
 			if (!(projA.Item2 >= projB.Item1 || projB.Item2 <= projA.Item1))
@@ -152,4 +148,3 @@ public class Polygon
 		Console.WriteLine(P1.collisionCheck(P2));
 	}
 }
-	
